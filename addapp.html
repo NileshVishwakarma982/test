@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add App - TaskReward Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="admin.html" style="color: white; text-decoration: none;">TaskReward Admin</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="adminName">Welcome, Admin</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Add New App</h2>
+                    <p>Add a new mobile app for users to download and earn points</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="admin.html">Dashboard</a>
+                    <a href="addapp.html" class="active">Add App</a>
+                    <a href="javascript:void(0);" onclick="showUsers()">Manage Users</a>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="form-container" style="max-width: 600px;">
+                        <h3>App Details</h3>
+                        <form id="addAppForm">
+                            <div class="form-group">
+                                <label for="appName">App Name:</label>
+                                <input type="text" id="appName" name="appName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appUrl">App URL (Play Store/App Store):</label>
+                                <input type="url" id="appUrl" name="appUrl" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appCategory">Category:</label>
+                                <select id="appCategory" name="appCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Gaming">Gaming</option>
+                                    <option value="Productivity">Productivity</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Health & Fitness">Health & Fitness</option>
+                                    <option value="News">News</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appSubcategory">Subcategory:</label>
+                                <select id="appSubcategory" name="appSubcategory" required>
+                                    <option value="">Select Subcategory</option>
+                                    <option value="Social Network">Social Network</option>
+                                    <option value="Video Streaming">Video Streaming</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Photo & Video">Photo & Video</option>
+                                    <option value="Dating">Dating</option>
+                                    <option value="Messaging">Messaging</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Food & Drink">Food & Drink</option>
+                                    <option value="Travel">Travel</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appDescription">Description:</label>
+                                <textarea id="appDescription" name="appDescription" rows="4" required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appPoints">Points Reward:</label>
+                                <input type="number" id="appPoints" name="appPoints" min="1" max="1000" required>
+                                <small style="color: #666;">Points users will earn for completing this task</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="appIcon">App Icon (optional):</label>
+                                <input type="file" id="appIcon" name="appIcon" accept="image/*">
+                                <small style="color: #666;">Upload app icon image (PNG, JPG, GIF)</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Add App</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        // Protect admin page
+        if (!protectPage('admin')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load admin name
+            loadAdminName();
+        }
+
+        // Handle form submission
+        document.getElementById('addAppForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const appData = {
+                name: document.getElementById('appName').value,
+                url: document.getElementById('appUrl').value,
+                category: document.getElementById('appCategory').value,
+                subcategory: document.getElementById('appSubcategory').value,
+                description: document.getElementById('appDescription').value,
+                points: parseInt(document.getElementById('appPoints').value),
+                icon: null, // Will be handled separately if needed
+                dateAdded: new Date().toISOString()
+            };
+            
+            if (addApp(appData)) {
+                alert('App added successfully!');
+                document.getElementById('addAppForm').reset();
+                window.location.href = 'admin.html';
+            } else {
+                alert('Error adding app. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

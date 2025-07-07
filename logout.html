@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="index.html" style="color: white; text-decoration: none;">TaskReward</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="form-container">
+                    <div class="logout-message">
+                        <h2>You've been logged out</h2>
+                        <div class="logout-icon">👋</div>
+                        <p>Thank you for using TaskReward!</p>
+                        <p>Your session has been ended securely.</p>
+                        
+                        <div class="logout-actions">
+                            <a href="index.html" class="btn btn-primary">Back to Home</a>
+                            <a href="login.html" class="btn btn-secondary">Login Again</a>
+                        </div>
+                        
+                        <div class="logout-stats">
+                            <h3>What you can do next:</h3>
+                            <ul>
+                                <li>✨ Explore new apps on our platform</li>
+                                <li>🎯 Log back in to continue earning points</li>
+                                <li>📱 Share TaskReward with friends</li>
+                                <li>🏆 Check out our latest rewards</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 TaskReward. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        // Clear all session data
+        sessionStorage.removeItem('loggedIn');
+        sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('userEmail');
+        sessionStorage.removeItem('currentUser');
+        
+        // Auto-redirect to home after 10 seconds
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 10000);
+    </script>
+
+    <style>
+        .logout-message {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .logout-message h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .logout-icon {
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+
+        .logout-message p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .logout-actions {
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .logout-stats {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+
+        .logout-stats h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .logout-stats ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .logout-stats li {
+            padding: 0.5rem 0;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .logout-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .logout-stats ul {
+                text-align: center;
+            }
+        }
+    </style>
+</body>
+</html>

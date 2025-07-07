@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="user.html" style="color: white; text-decoration: none;">TaskReward</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="userName">Welcome, User</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Your Dashboard</h2>
+                    <p>Complete tasks, earn points, and track your progress</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="user.html" class="active">Dashboard</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="point.html">Points</a>
+                    <a href="task.html">Tasks</a>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="userPoints">0</div>
+                        <div class="stat-label">Total Points</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="userTasks">0</div>
+                        <div class="stat-label">Tasks Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="availableApps">0</div>
+                        <div class="stat-label">Available Apps</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingTasks">0</div>
+                        <div class="stat-label">Pending Tasks</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <h3>Available Apps</h3>
+                    <p>Download these apps and upload screenshots to earn points!</p>
+                    <div id="appsGrid" class="app-grid">
+                        <!-- Apps will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for app details and screenshot upload -->
+    <div id="appModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalAppName">App Name</h3>
+            <p id="modalAppDescription">App description</p>
+            <div class="app-points" id="modalAppPoints">Points: 0</div>
+            
+            <div class="modal-actions">
+                <a id="downloadAppBtn" href="#" target="_blank" class="btn btn-primary">Download App</a>
+                <div class="upload-section">
+                    <h4>Upload Screenshot</h4>
+                    <div class="drop-zone" id="dropZone">
+                        <h3>📱 Drop your screenshot here</h3>
+                        <p>or click to browse files</p>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </div>
+                    <button id="submitScreenshot" class="btn btn-secondary" style="display: none;">Submit Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="user.js"></script>
+    <script>
+        // Protect user page
+        if (!protectPage('user')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load user dashboard
+            loadUserDashboard();
+        }
+    </script>
+</body>
+</html>

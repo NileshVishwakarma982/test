@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="user.html" style="color: white; text-decoration: none;">TaskReward</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="userName">Welcome, User</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Your Profile</h2>
+                    <p>Manage your personal information and account settings</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="user.html">Dashboard</a>
+                    <a href="profile.html" class="active">Profile</a>
+                    <a href="point.html">Points</a>
+                    <a href="task.html">Tasks</a>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="profile-section">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <div class="avatar-placeholder" id="avatarPlaceholder">
+                                    <span id="avatarInitial">U</span>
+                                </div>
+                            </div>
+                            <div class="profile-info">
+                                <h3 id="profileName">User Name</h3>
+                                <p id="profileEmail">user@example.com</p>
+                                <p class="join-date">Member since: <span id="joinDate">2024</span></p>
+                            </div>
+                        </div>
+
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalPoints">0</span>
+                                <span class="stat-label">Total Points</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalTasks">0</span>
+                                <span class="stat-label">Tasks Completed</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="memberDays">0</span>
+                                <span class="stat-label">Days Active</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-form">
+                            <h4>Update Profile</h4>
+                            <form id="profileForm">
+                                <div class="form-group">
+                                    <label for="updateName">Full Name:</label>
+                                    <input type="text" id="updateName" name="updateName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateEmail">Email:</label>
+                                    <input type="email" id="updateEmail" name="updateEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password:</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">New Password (optional):</label>
+                                    <input type="password" id="newPassword" name="newPassword">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmNewPassword">Confirm New Password:</label>
+                                    <input type="password" id="confirmNewPassword" name="confirmNewPassword">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                            </form>
+                        </div>
+
+                        <div class="profile-achievements">
+                            <h4>Achievements</h4>
+                            <div class="achievements-grid" id="achievementsGrid">
+                                <!-- Achievements will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="user.js"></script>
+    <script>
+        // Protect user page
+        if (!protectPage('user')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load profile page
+            loadProfile();
+        }
+
+        // Load profile information
+        function loadProfile() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            // Update header
+            loadUserName();
+
+            // Update profile info
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('avatarInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+
+            // Update stats
+            document.getElementById('totalPoints').textContent = currentUser.points || 0;
+            document.getElementById('totalTasks').textContent = currentUser.tasksCompleted || 0;
+            document.getElementById('memberDays').textContent = Math.floor(Math.random() * 30) + 1; // Simulate days
+
+            // Pre-fill form
+            document.getElementById('updateName').value = currentUser.name;
+            document.getElementById('updateEmail').value = currentUser.email;
+
+            // Load achievements
+            loadAchievements();
+        }
+
+        // Load achievements
+        function loadAchievements() {
+            const currentUser = getCurrentUser();
+            const achievements = [];
+
+            if (currentUser.points >= 50) {
+                achievements.push({ name: 'First Steps', description: 'Earned your first 50 points', icon: '🎯' });
+            }
+            if (currentUser.points >= 100) {
+                achievements.push({ name: 'Century Club', description: 'Earned 100 points', icon: '💯' });
+            }
+            if (currentUser.tasksCompleted >= 1) {
+                achievements.push({ name: 'Task Master', description: 'Completed your first task', icon: '📱' });
+            }
+            if (currentUser.tasksCompleted >= 5) {
+                achievements.push({ name: 'App Explorer', description: 'Completed 5 tasks', icon: '🚀' });
+            }
+
+            const achievementsGrid = document.getElementById('achievementsGrid');
+            achievementsGrid.innerHTML = '';
+
+            if (achievements.length === 0) {
+                achievementsGrid.innerHTML = '<p style="text-align: center; color: #666;">Complete tasks to unlock achievements!</p>';
+            } else {
+                achievements.forEach(achievement => {
+                    const achievementCard = document.createElement('div');
+                    achievementCard.className = 'achievement-card';
+                    achievementCard.innerHTML = `
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <h5>${achievement.name}</h5>
+                        <p>${achievement.description}</p>
+                    `;
+                    achievementsGrid.appendChild(achievementCard);
+                });
+            }
+        }
+
+        // Handle profile form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            const newName = document.getElementById('updateName').value;
+            const newEmail = document.getElementById('updateEmail').value;
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            // Verify current password
+            if (currentPassword !== currentUser.password) {
+                alert('Current password is incorrect.');
+                return;
+            }
+
+            // Validate new password if provided
+            if (newPassword && newPassword !== confirmNewPassword) {
+                alert('New passwords do not match.');
+                return;
+            }
+
+            // Update user data
+            currentUser.name = newName;
+            currentUser.email = newEmail;
+            if (newPassword) {
+                currentUser.password = newPassword;
+            }
+
+            if (updateUser(currentUser)) {
+                alert('Profile updated successfully!');
+                loadProfile();
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            } else {
+                alert('Error updating profile. Please try again.');
+            }
+        });
+    </script>
+
+    <style>
+        .profile-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-avatar {
+            margin-right: 2rem;
+        }
+
+        .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .profile-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+
+        .profile-info p {
+            margin: 0.25rem 0;
+            color: #666;
+        }
+
+        .join-date {
+            font-size: 0.9rem;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .profile-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .profile-form h4 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .profile-achievements {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-achievements h4 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .achievement-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-card h5 {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+
+        .achievement-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

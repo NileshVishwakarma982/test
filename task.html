@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="user.html" style="color: white; text-decoration: none;">TaskReward</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="userName">Welcome, User</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Your Tasks</h2>
+                    <p>Manage your completed and pending tasks</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="user.html">Dashboard</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="point.html">Points</a>
+                    <a href="task.html" class="active">Tasks</a>
+                </div>
+
+                <div class="tasks-overview">
+                    <div class="task-stats">
+                        <div class="stat-card">
+                            <h3>Completed Tasks</h3>
+                            <div class="stat-value" id="completedTasks">0</div>
+                            <p>Keep up the great work!</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Pending Tasks</h3>
+                            <div class="stat-value" id="pendingTasks">0</div>
+                            <p>Apps waiting to be downloaded</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Points Earned</h3>
+                            <div class="stat-value" id="totalPointsEarned">0</div>
+                            <p>From completed tasks</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="tasks-tabs">
+                        <button class="tab-btn active" data-tab="pending">Pending Tasks</button>
+                        <button class="tab-btn" data-tab="completed">Completed Tasks</button>
+                    </div>
+
+                    <div class="tab-content active" id="pending-tab">
+                        <div class="tasks-section">
+                            <h3>Available Tasks</h3>
+                            <p>Complete these tasks to earn points!</p>
+                            <div id="pendingTasksList" class="tasks-list">
+                                <!-- Pending tasks will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="completed-tab">
+                        <div class="tasks-section">
+                            <h3>Completed Tasks</h3>
+                            <p>Your successfully completed tasks and earned points</p>
+                            <div id="completedTasksList" class="tasks-list">
+                                <!-- Completed tasks will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for task completion -->
+    <div id="taskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalTaskName">Task Name</h3>
+            <p id="modalTaskDescription">Task description</p>
+            <div class="app-points" id="modalTaskPoints">Points: 0</div>
+            
+            <div class="modal-actions">
+                <a id="downloadTaskBtn" href="#" target="_blank" class="btn btn-primary">Download App</a>
+                <div class="upload-section">
+                    <h4>Upload Screenshot</h4>
+                    <p>Take a screenshot of the app running on your device and upload it here</p>
+                    <div class="drop-zone" id="taskDropZone">
+                        <h3>📱 Drop your screenshot here</h3>
+                        <p>or click to browse files</p>
+                        <input type="file" id="taskFileInput" accept="image/*" style="display: none;">
+                    </div>
+                    <button id="submitTaskScreenshot" class="btn btn-secondary" style="display: none;">Submit Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="user.js"></script>
+    <script>
+        // Current task being worked on
+        let currentTask = null;
+        let taskUploadedFile = null;
+
+        // Protect user page
+        if (!protectPage('user')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load tasks page
+            loadTasksPage();
+        }
+
+        // Load tasks page
+        function loadTasksPage() {
+            loadUserName();
+            loadTasksOverview();
+            loadPendingTasks();
+            loadCompletedTasks();
+            setupTabs();
+            setupTaskModal();
+        }
+
+        // Load tasks overview
+        function loadTasksOverview() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            const apps = getApps();
+            const completedTasksCount = currentUser.tasksCompleted || 0;
+            const completedAppNames = currentUser.completedTasks ? currentUser.completedTasks.map(task => task.appName) : [];
+            const pendingTasksCount = apps.filter(app => !completedAppNames.includes(app.name)).length;
+            const totalPointsEarned = currentUser.points || 0;
+
+            document.getElementById('completedTasks').textContent = completedTasksCount;
+            document.getElementById('pendingTasks').textContent = pendingTasksCount;
+            document.getElementById('totalPointsEarned').textContent = totalPointsEarned;
+        }
+
+        // Load pending tasks
+        function loadPendingTasks() {
+            const currentUser = getCurrentUser();
+            const apps = getApps();
+            const pendingTasksList = document.getElementById('pendingTasksList');
+
+            if (!currentUser || !pendingTasksList) return;
+
+            const completedAppNames = currentUser.completedTasks ? currentUser.completedTasks.map(task => task.appName) : [];
+            const pendingApps = apps.filter(app => !completedAppNames.includes(app.name));
+
+            pendingTasksList.innerHTML = '';
+
+            if (pendingApps.length === 0) {
+                pendingTasksList.innerHTML = '<p style="text-align: center; color: #666;">No pending tasks! You\'ve completed all available tasks.</p>';
+                return;
+            }
+
+            pendingApps.forEach(app => {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card pending';
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div class="app-icon">${app.name.charAt(0).toUpperCase()}</div>
+                        <div class="task-info">
+                            <h4>${app.name}</h4>
+                            <p>${app.description}</p>
+                            <div class="task-meta">
+                                <span class="task-category">${app.category}</span>
+                                <span class="task-subcategory">${app.subcategory}</span>
+                            </div>
+                        </div>
+                        <div class="task-points">
+                            <span class="points-value">${app.points}</span>
+                            <span class="points-label">POINTS</span>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button onclick="openTaskModal('${app.name}')" class="btn btn-primary">Start Task</button>
+                    </div>
+                `;
+                pendingTasksList.appendChild(taskCard);
+            });
+        }
+
+        // Load completed tasks
+        function loadCompletedTasks() {
+            const currentUser = getCurrentUser();
+            const completedTasksList = document.getElementById('completedTasksList');
+
+            if (!currentUser || !completedTasksList) return;
+
+            const completedTasks = currentUser.completedTasks || [];
+
+            completedTasksList.innerHTML = '';
+
+            if (completedTasks.length === 0) {
+                completedTasksList.innerHTML = '<p style="text-align: center; color: #666;">No completed tasks yet. Start completing tasks to earn points!</p>';
+                return;
+            }
+
+            // Sort by completion date (newest first)
+            const sortedTasks = [...completedTasks].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
+            sortedTasks.forEach(task => {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card completed';
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div class="app-icon">${task.appName.charAt(0).toUpperCase()}</div>
+                        <div class="task-info">
+                            <h4>${task.appName}</h4>
+                            <p>Task completed successfully</p>
+                            <div class="task-meta">
+                                <span class="completion-date">Completed on ${new Date(task.completedAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="task-points earned">
+                            <span class="points-value">+${task.points}</span>
+                            <span class="points-label">EARNED</span>
+                        </div>
+                    </div>
+                    <div class="task-status">
+                        <span class="status-badge completed">✓ Completed</span>
+                        <span class="screenshot-info">Screenshot: ${task.screenshot || 'uploaded'}</span>
+                    </div>
+                `;
+                completedTasksList.appendChild(taskCard);
+            });
+        }
+
+        // Setup tabs
+        function setupTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+
+                    // Remove active class from all buttons and contents
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked button and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(tabName + '-tab').classList.add('active');
+                });
+            });
+        }
+
+        // Setup task modal
+        function setupTaskModal() {
+            const modal = document.getElementById('taskModal');
+            const closeBtn = modal.querySelector('.close');
+            const dropZone = document.getElementById('taskDropZone');
+            const fileInput = document.getElementById('taskFileInput');
+
+            // Close modal when clicking X
+            if (closeBtn) {
+                closeBtn.onclick = function() {
+                    modal.style.display = 'none';
+                    resetTaskModal();
+                };
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    resetTaskModal();
+                }
+            };
+
+            // Setup drag and drop
+            if (dropZone) {
+                dropZone.addEventListener('click', () => fileInput.click());
+
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('dragover');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleTaskFileUpload(files[0]);
+                    }
+                });
+            }
+
+            // Handle file input change
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleTaskFileUpload(e.target.files[0]);
+                    }
+                });
+            }
+
+            // Handle task submission
+            const submitBtn = document.getElementById('submitTaskScreenshot');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', submitTaskCompletion);
+            }
+        }
+
+        // Open task modal
+        function openTaskModal(appName) {
+            const apps = getApps();
+            const app = apps.find(a => a.name === appName);
+
+            if (!app) return;
+
+            currentTask = app;
+
+            // Update modal content
+            document.getElementById('modalTaskName').textContent = app.name;
+            document.getElementById('modalTaskDescription').textContent = app.description;
+            document.getElementById('modalTaskPoints').textContent = `${app.points} POINTS`;
+            document.getElementById('downloadTaskBtn').href = app.url;
+
+            // Show modal
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        // Handle task file upload
+        function handleTaskFileUpload(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('File size must be less than 5MB.');
+                return;
+            }
+
+            taskUploadedFile = file;
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dropZone = document.getElementById('taskDropZone');
+                dropZone.innerHTML = `
+                    <div class="file-preview">
+                        <img src="${e.target.result}" alt="Screenshot preview">
+                        <p>Screenshot uploaded successfully!</p>
+                    </div>
+                `;
+
+                // Show submit button
+                document.getElementById('submitTaskScreenshot').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Submit task completion
+        function submitTaskCompletion() {
+            if (!currentTask || !taskUploadedFile) {
+                alert('Please upload a screenshot first.');
+                return;
+            }
+
+            const currentUser = getCurrentUser();
+            if (!currentUser) {
+                alert('Please log in to submit tasks.');
+                return;
+            }
+
+            // Add task to user's completed tasks
+            if (!currentUser.completedTasks) {
+                currentUser.completedTasks = [];
+            }
+
+            const task = {
+                appName: currentTask.name,
+                points: currentTask.points,
+                screenshot: taskUploadedFile.name,
+                completedAt: new Date().toISOString()
+            };
+
+            currentUser.completedTasks.push(task);
+            currentUser.points = (currentUser.points || 0) + currentTask.points;
+            currentUser.tasksCompleted = (currentUser.tasksCompleted || 0) + 1;
+
+            // Update user data
+            if (updateUser(currentUser)) {
+                alert(`Congratulations! You've earned ${currentTask.points} points for completing the ${currentTask.name} task!`);
+                document.getElementById('taskModal').style.display = 'none';
+                resetTaskModal();
+                loadTasksPage();
+            } else {
+                alert('Error submitting task. Please try again.');
+            }
+        }
+
+        // Reset task modal
+        function resetTaskModal() {
+            currentTask = null;
+            taskUploadedFile = null;
+
+            const dropZone = document.getElementById('taskDropZone');
+            dropZone.innerHTML = `
+                <h3>📱 Drop your screenshot here</h3>
+                <p>or click to browse files</p>
+                <input type="file" id="taskFileInput" accept="image/*" style="display: none;">
+            `;
+
+            document.getElementById('submitTaskScreenshot').style.display = 'none';
+
+            // Re-setup file input
+            const fileInput = document.getElementById('taskFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleTaskFileUpload(e.target.files[0]);
+                    }
+                });
+            }
+        }
+    </script>
+
+    <style>
+        .tasks-overview {
+            margin-bottom: 2rem;
+        }
+
+        .task-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0.5rem 0;
+        }
+
+        .tasks-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active,
+        .tab-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tasks-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tasks-list {
+            margin-top: 1rem;
+        }
+
+        .task-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .task-card.completed {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .task-info {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .task-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+
+        .task-info p {
+            margin: 0 0 0.5rem 0;
+            color: #666;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .task-category, .task-subcategory {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: #666;
+        }
+
+        .completion-date {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .task-points {
+            text-align: center;
+            margin-left: 1rem;
+        }
+
+        .points-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .points-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .task-points.earned .points-value {
+            color: #28a745;
+        }
+
+        .task-actions {
+            text-align: center;
+        }
+
+        .task-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .screenshot-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .task-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .task-info {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .task-points {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .task-status {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</body>
+</html>
