@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task - Reward Apps</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <nav>
+    <h2 id="taskAppName">App Task</h2>
+    <div>
+      <a href="user.html">Home</a>
+      <a href="points.html">Points</a>
+      <a href="logout.html">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card" style="margin-bottom: 30px;">
+      <div class="app-info">
+        <img id="taskIcon" src="" alt="app icon" />
+        <div>
+          <h3 id="taskAppNameSmall"></h3>
+        </div>
+      </div>
+      <span class="btn" id="taskPoints"></span>
+    </div>
+
+    <h3>Upload Screenshot (Drag & Drop)</h3>
+    <div id="dropZone" class="drop-zone">
+      Drag & Drop screenshot here or click to select file
+    </div>
+    <input id="fileInput" type="file" accept="image/*" style="display:none;" />
+  </div>
+  <script src="assets/app.js"></script>
+  <script>
+    // clicking on dropzone triggers file chooser
+    document.addEventListener('DOMContentLoaded', function() {
+      const dz = document.getElementById('dropZone');
+      const fi = document.getElementById('fileInput');
+      dz.addEventListener('click', () => fi.click());
+    });
+  </script>
+</body>
+</html>

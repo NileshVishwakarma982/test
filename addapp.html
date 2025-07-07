@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add App - Admin</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <nav>
+    <h2>Add New App</h2>
+    <div>
+      <a href="admin.html">Dashboard</a>
+      <a href="logout.html">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <form id="addAppForm">
+      <div>
+        <label for="name">App Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
+      <div>
+        <label for="package">Package Name / Play-Store Link</label>
+        <input type="text" id="package" name="package" required />
+      </div>
+      <div>
+        <label for="category">Category</label>
+        <input type="text" id="category" name="category" />
+      </div>
+      <div>
+        <label for="subcategory">Sub-Category</label>
+        <input type="text" id="subcategory" name="subcategory" />
+      </div>
+      <div>
+        <label for="points">Points</label>
+        <input type="number" id="points" name="points" required value="100" />
+      </div>
+      <div>
+        <label for="icon">App Icon (optional)</label>
+        <input type="file" id="icon" accept="image/*" />
+      </div>
+      <button class="btn" type="submit">Add App</button>
+    </form>
+  </div>
+  <script src="assets/app.js"></script>
+</body>
+</html>
