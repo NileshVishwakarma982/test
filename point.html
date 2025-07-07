@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="user.html" style="color: white; text-decoration: none;">TaskReward</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="userName">Welcome, User</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Your Points</h2>
+                    <p>Track your earnings and see how you're progressing</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="user.html">Dashboard</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="point.html" class="active">Points</a>
+                    <a href="task.html">Tasks</a>
+                </div>
+
+                <div class="points-overview">
+                    <div class="points-summary">
+                        <div class="points-card main-points">
+                            <h3>Total Points</h3>
+                            <div class="points-value" id="totalPoints">0</div>
+                            <p>Keep earning to unlock more rewards!</p>
+                        </div>
+                        <div class="points-card">
+                            <h4>This Month</h4>
+                            <div class="points-value small" id="monthlyPoints">0</div>
+                        </div>
+                        <div class="points-card">
+                            <h4>This Week</h4>
+                            <div class="points-value small" id="weeklyPoints">0</div>
+                        </div>
+                        <div class="points-card">
+                            <h4>Today</h4>
+                            <div class="points-value small" id="todayPoints">0</div>
+                        </div>
+                    </div>
+
+                    <div class="points-chart">
+                        <h3>Points Progress</h3>
+                        <div class="chart-container">
+                            <canvas id="pointsChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="points-history">
+                        <h3>Points History</h3>
+                        <div class="history-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="week">This Week</button>
+                            <button class="filter-btn" data-filter="month">This Month</button>
+                        </div>
+                        <div class="history-list" id="pointsHistory">
+                            <!-- Points history will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="points-rewards">
+                        <h3>Rewards</h3>
+                        <p>Redeem your points for exciting rewards!</p>
+                        <div class="rewards-grid">
+                            <div class="reward-card">
+                                <h4>🎁 Gift Card</h4>
+                                <p>$10 Amazon Gift Card</p>
+                                <div class="reward-cost">1000 Points</div>
+                                <button class="btn btn-secondary" onclick="redeemReward(1000, 'Amazon Gift Card')">Redeem</button>
+                            </div>
+                            <div class="reward-card">
+                                <h4>🍕 Food Voucher</h4>
+                                <p>$5 Food Delivery Voucher</p>
+                                <div class="reward-cost">500 Points</div>
+                                <button class="btn btn-secondary" onclick="redeemReward(500, 'Food Voucher')">Redeem</button>
+                            </div>
+                            <div class="reward-card">
+                                <h4>📱 App Credit</h4>
+                                <p>$2 App Store Credit</p>
+                                <div class="reward-cost">200 Points</div>
+                                <button class="btn btn-secondary" onclick="redeemReward(200, 'App Store Credit')">Redeem</button>
+                            </div>
+                            <div class="reward-card">
+                                <h4>☕ Coffee</h4>
+                                <p>Free Coffee Voucher</p>
+                                <div class="reward-cost">100 Points</div>
+                                <button class="btn btn-secondary" onclick="redeemReward(100, 'Coffee Voucher')">Redeem</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="user.js"></script>
+    <script>
+        // Protect user page
+        if (!protectPage('user')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load points page
+            loadPointsPage();
+        }
+
+        // Load points page
+        function loadPointsPage() {
+            loadUserName();
+            loadPointsOverview();
+            loadPointsHistory();
+            setupFilters();
+            drawPointsChart();
+        }
+
+        // Load points overview
+        function loadPointsOverview() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            const totalPoints = currentUser.points || 0;
+            const completedTasks = currentUser.completedTasks || [];
+
+            // Calculate time-based points
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            let todayPoints = 0;
+            let weeklyPoints = 0;
+            let monthlyPoints = 0;
+
+            completedTasks.forEach(task => {
+                const taskDate = new Date(task.completedAt);
+                if (taskDate >= todayStart) {
+                    todayPoints += task.points;
+                }
+                if (taskDate >= weekStart) {
+                    weeklyPoints += task.points;
+                }
+                if (taskDate >= monthStart) {
+                    monthlyPoints += task.points;
+                }
+            });
+
+            document.getElementById('totalPoints').textContent = totalPoints;
+            document.getElementById('todayPoints').textContent = todayPoints;
+            document.getElementById('weeklyPoints').textContent = weeklyPoints;
+            document.getElementById('monthlyPoints').textContent = monthlyPoints;
+        }
+
+        // Load points history
+        function loadPointsHistory() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            const completedTasks = currentUser.completedTasks || [];
+            const historyContainer = document.getElementById('pointsHistory');
+
+            if (completedTasks.length === 0) {
+                historyContainer.innerHTML = '<p style="text-align: center; color: #666;">No points history yet. Complete tasks to start earning!</p>';
+                return;
+            }
+
+            // Sort tasks by date (newest first)
+            const sortedTasks = [...completedTasks].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
+            historyContainer.innerHTML = '';
+
+            sortedTasks.forEach(task => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div class="history-app">
+                        <div class="app-icon small">${task.appName.charAt(0).toUpperCase()}</div>
+                        <div class="history-details">
+                            <h4>${task.appName}</h4>
+                            <p>Task completed</p>
+                        </div>
+                    </div>
+                    <div class="history-points">+${task.points}</div>
+                    <div class="history-date">${new Date(task.completedAt).toLocaleDateString()}</div>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        // Setup filter buttons
+        function setupFilters() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Filter history (for now, just reload all)
+                    loadPointsHistory();
+                });
+            });
+        }
+
+        // Draw simple points chart
+        function drawPointsChart() {
+            const canvas = document.getElementById('pointsChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const currentUser = getCurrentUser();
+            if (!currentUser || !currentUser.completedTasks) return;
+
+            // Simple bar chart showing points over time
+            const completedTasks = currentUser.completedTasks || [];
+            if (completedTasks.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Complete tasks to see your progress!', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Draw bars for each task
+            const barWidth = Math.min(canvas.width / completedTasks.length, 50);
+            const maxPoints = Math.max(...completedTasks.map(t => t.points));
+            
+            completedTasks.forEach((task, index) => {
+                const barHeight = (task.points / maxPoints) * (canvas.height - 40);
+                const x = index * barWidth + 10;
+                const y = canvas.height - barHeight - 20;
+                
+                ctx.fillStyle = '#667eea';
+                ctx.fillRect(x, y, barWidth - 5, barHeight);
+                
+                // Draw points text
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(task.points, x + barWidth / 2, y - 5);
+            });
+        }
+
+        // Redeem reward
+        function redeemReward(cost, rewardName) {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            if (currentUser.points < cost) {
+                alert(`You need ${cost - currentUser.points} more points to redeem this reward.`);
+                return;
+            }
+
+            if (confirm(`Are you sure you want to redeem ${rewardName} for ${cost} points?`)) {
+                currentUser.points -= cost;
+                updateUser(currentUser);
+                alert(`Congratulations! You've redeemed ${rewardName}. Your redemption code will be sent to your email.`);
+                loadPointsOverview();
+            }
+        }
+    </script>
+
+    <style>
+        .points-overview {
+            margin-bottom: 2rem;
+        }
+
+        .points-summary {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .points-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .main-points {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .points-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0.5rem 0;
+        }
+
+        .points-value.small {
+            font-size: 1.8rem;
+        }
+
+        .main-points .points-value {
+            color: white;
+        }
+
+        .points-chart {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-container {
+            margin-top: 1rem;
+        }
+
+        .points-history {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-app {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .app-icon.small {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-right: 1rem;
+        }
+
+        .history-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #333;
+        }
+
+        .history-details p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .history-points {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-right: 1rem;
+        }
+
+        .history-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .points-rewards {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reward-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .reward-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+
+        .reward-card p {
+            margin: 0 0 1rem 0;
+            color: #666;
+        }
+
+        .reward-cost {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .points-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .history-app {
+                margin-bottom: 0.5rem;
+            }
+            
+            .rewards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

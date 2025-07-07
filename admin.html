@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TaskReward</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="admin.html" style="color: white; text-decoration: none;">TaskReward Admin</a></h1>
+            <nav>
+                <ul>
+                    <li><span id="adminName">Welcome, Admin</span></li>
+                    <li><a href="javascript:void(0);" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Admin Dashboard</h2>
+                    <p>Manage apps, monitor users, and track system performance</p>
+                </div>
+
+                <div class="dashboard-nav">
+                    <a href="admin.html" class="active">Dashboard</a>
+                    <a href="addapp.html">Add App</a>
+                    <a href="javascript:void(0);" onclick="showUsers()">Manage Users</a>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalApps">0</div>
+                        <div class="stat-label">Total Apps</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalTasks">0</div>
+                        <div class="stat-label">Completed Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPoints">0</div>
+                        <div class="stat-label">Points Distributed</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div id="appsSection">
+                        <h3>Available Apps</h3>
+                        <div id="appsGrid" class="app-grid">
+                            <!-- Apps will be dynamically loaded here -->
+                        </div>
+                    </div>
+
+                    <div id="usersSection" style="display: none;">
+                        <h3>User Management</h3>
+                        <div class="table-container">
+                            <table id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Points</th>
+                                        <th>Tasks Completed</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- User data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        // Protect admin page
+        if (!protectPage('admin')) {
+            // Page protection failed, redirect will happen in protectPage function
+        } else {
+            // Load admin dashboard
+            loadAdminDashboard();
+        }
+    </script>
+</body>
+</html>
